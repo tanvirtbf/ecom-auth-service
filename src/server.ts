@@ -1,3 +1,3 @@
-import { Config } from '../src/config/index.ts';
+import { Config } from '../src/config/index.js';
 
 console.log(Config);
