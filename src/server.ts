@@ -1,5 +1,3 @@
-function welcome(name: string) {
-  return name;
-}
+import { Config } from '../src/config/index.ts';
 
-welcome('Tanvir Ahmed');
+console.log(Config);
