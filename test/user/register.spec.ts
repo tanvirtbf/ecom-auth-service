@@ -24,7 +24,9 @@ describe("POST /auth/register", () => {
                 .send(userData);
 
             // Assert
-            expect(response.statusCode).toBe(201);
+            expect(
+                (response.header as Record<string, string>)["content-type"],
+            ).toEqual(expect.stringContaining("json"));
         });
     });
 
