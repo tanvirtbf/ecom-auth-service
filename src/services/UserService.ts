@@ -4,11 +4,7 @@ import { UserData } from "../types";
 import createHttpError from "http-errors";
 
 export class UserService {
-    private userRepository: Repository<User>;
-
-    constructor(userRepository: Repository<User>) {
-        this.userRepository = userRepository;
-    }
+    constructor(private userRepository: Repository<User>) {}
 
     async create({ firstName, lastName, email, password }: UserData) {
         try {
@@ -19,7 +15,10 @@ export class UserService {
                 password,
             });
         } catch (err) {
-            const error = createHttpError(500, "Failed to create user");
+            const error = createHttpError(
+                500,
+                "Failed to store the data in the database",
+            );
             throw error;
         }
     }

@@ -15,14 +15,12 @@ export class AuthController {
         next: NextFunction,
     ) {
         const { firstName, lastName, email, password } = req.body;
-
-        this.logger.debug("New Request to register a user", {
+        this.logger.debug("New request to register a user", {
             firstName,
             lastName,
             email,
-            password: "********",
+            password: "******",
         });
-
         try {
             const user = await this.userService.create({
                 firstName,
@@ -30,10 +28,10 @@ export class AuthController {
                 email,
                 password,
             });
-            this.logger.info(`User has been registered`, { id: user.id });
+            this.logger.info("User has been registered", { id: user.id });
             res.status(201).json({ id: user.id });
-        } catch (error) {
-            next(error);
+        } catch (err) {
+            next(err);
             return;
         }
     }
