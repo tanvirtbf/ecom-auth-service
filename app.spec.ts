@@ -9,7 +9,7 @@ describe.skip("App", () => {
         expect(result).toBe(10);
     });
 
-    it("slhould return 200 status", async () => {
+    it("should return 200 status", async () => {
         const response = await request(app).get("/").send();
         expect(response.statusCode).toBe(200);
     });
