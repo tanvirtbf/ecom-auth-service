@@ -127,7 +127,6 @@ describe("POST /auth/register", () => {
                 email: "rakesh@mern.space",
                 password: "secret",
             };
-
             // Act
             await request(app).post("/auth/register").send(userData);
 
@@ -136,10 +135,10 @@ describe("POST /auth/register", () => {
             const users = await userRepository.find();
             expect(users[0].password).not.toBe(userData.password);
             expect(users[0].password).toHaveLength(60);
-            // expect(users[0].password).toMatch(/^\$2b\$\d+\$/);
+            expect(users[0].password).toMatch(/^\$2b\$\d+\$/);
         });
 
-        it("should return the 400 status code if email is already exist", async () => {
+        it("should return 400 status code if email is already exists", async () => {
             // Arrange
             const userData = {
                 firstName: "Rakesh",
@@ -156,11 +155,30 @@ describe("POST /auth/register", () => {
                 .send(userData);
 
             const users = await userRepository.find();
-
             // Assert
             expect(response.statusCode).toBe(400);
             expect(users).toHaveLength(1);
         });
     });
-    describe("Fields are missing", () => {});
+    describe("Fields are missing", () => {
+        it("should return 400 status code if email field is missing", async () => {
+            // Arrange
+            const userData = {
+                firstName: "Rakesh",
+                lastName: "K",
+                email: "",
+                password: "secret",
+            };
+            // Act
+            const response = await request(app)
+                .post("/auth/register")
+                .send(userData);
+
+            // Assert
+            expect(response.statusCode).toBe(400);
+            const userRepository = connection.getRepository(User);
+            const users = await userRepository.find();
+            expect(users).toHaveLength(0);
+        });
+    });
 });
