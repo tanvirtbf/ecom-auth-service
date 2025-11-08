@@ -180,6 +180,68 @@ describe("POST /auth/register", () => {
             const users = await userRepository.find();
             expect(users).toHaveLength(0);
         });
+
+        it("should return 400 status code if firstName field is missing", async () => {
+            // Arrange
+            const userData = {
+                firstName: "",
+                lastName: "K",
+                email: "rakesh@mern.space",
+                password: "secret",
+            };
+
+            // Act
+            const response = await request(app)
+                .post("/auth/register")
+                .send(userData);
+
+            // Assert
+            expect(response.statusCode).toBe(400);
+            const userRepository = connection.getRepository(User);
+            const users = await userRepository.find();
+            expect(users).toHaveLength(0);
+        }),
+            it("should return 400 status code if lastName field is missing", async () => {
+                // Arrange
+                const userData = {
+                    firstName: "",
+                    lastName: "K",
+                    email: "rakesh@mern.space",
+                    password: "secret",
+                };
+
+                // Act
+                const response = await request(app)
+                    .post("/auth/register")
+                    .send(userData);
+
+                // Assert
+                expect(response.statusCode).toBe(400);
+                const userRepository = connection.getRepository(User);
+                const users = await userRepository.find();
+                expect(users).toHaveLength(0);
+            });
+
+        it("should return 400 status code if password field is missing", async () => {
+            // Arrange
+            const userData = {
+                firstName: "",
+                lastName: "K",
+                email: "rakesh@mern.space",
+                password: "secret",
+            };
+
+            // Act
+            const response = await request(app)
+                .post("/auth/register")
+                .send(userData);
+
+            // Assert
+            expect(response.statusCode).toBe(400);
+            const userRepository = connection.getRepository(User);
+            const users = await userRepository.find();
+            expect(users).toHaveLength(0);
+        });
     });
 
     describe("Fields are not in proper format", () => {
@@ -200,6 +262,59 @@ describe("POST /auth/register", () => {
             const users = await userRepository.find();
             const user = users[0];
             expect(user.email).toBe("rakesh@mern.space");
+        });
+        it("should trim the firstName field", async () => {
+            // Arrange
+            const userData = {
+                firstName: "  Rakesh  ",
+                lastName: "K",
+                email: "rakesh@mern.space",
+                password: "secret",
+            };
+
+            // Act
+            await request(app).post("/auth/register").send(userData);
+
+            // Assert
+            const userRepository = connection.getRepository(User);
+            const users = await userRepository.find();
+            const user = users[0];
+            expect(user.firstName).toBe("Rakesh");
+        });
+        it("should trim the lastName field", async () => {
+            // Arrange
+            const userData = {
+                firstName: "  Rakesh  ",
+                lastName: "K",
+                email: "rakesh@mern.space",
+                password: "secret",
+            };
+
+            // Act
+            await request(app).post("/auth/register").send(userData);
+
+            // Assert
+            const userRepository = connection.getRepository(User);
+            const users = await userRepository.find();
+            const user = users[0];
+            expect(user.lastName).toBe("K");
+        });
+        it("should Password minimum 6 characters", async () => {
+            // Arrange
+            const userData = {
+                firstName: "Rakesh",
+                lastName: "K",
+                email: "rakesh@mern.space",
+                password: "secre",
+            };
+
+            // Act
+            const response = await request(app)
+                .post("/auth/register")
+                .send(userData);
+
+            // Assert
+            expect(response.statusCode).toBe(400);
         });
     });
 });
