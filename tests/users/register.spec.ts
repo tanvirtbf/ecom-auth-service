@@ -4,6 +4,7 @@ import { User } from "../../src/entity/User";
 import { DataSource } from "typeorm";
 import { AppDataSource } from "../../src/config/data-source";
 import { Roles } from "../../src/constants";
+import { isJwt } from "../utils";
 
 describe("POST /auth/register", () => {
     let connection: DataSource;
@@ -159,7 +160,45 @@ describe("POST /auth/register", () => {
             expect(response.statusCode).toBe(400);
             expect(users).toHaveLength(1);
         });
+
+        it("should return the access token and refresh token in a cookie", async () => {
+            // Arrange
+            const userData = {
+                firstName: "Rakesh",
+                lastName: "K",
+                email: "rakesh@mern.space",
+                password: "secret",
+            };
+
+            // Act
+            const response = await request(app)
+                .post("/auth/register")
+                .send(userData);
+
+            interface Headers {
+                ["set-cookie"]: string[];
+            }
+
+            // Assert
+            let accessToken = null;
+            let refreshToken = null;
+            const cookies = (response.headers as Headers)["set-cookie"] || [];
+            cookies.forEach((cookie: string) => {
+                if (cookie.startsWith("accessToken=")) {
+                    accessToken = cookie.split(";")[0].split("=")[1];
+                }
+                if (cookie.startsWith("refreshToken=")) {
+                    refreshToken = cookie.split(";")[0].split("=")[1];
+                }
+            });
+            expect(accessToken).not.toBeNull();
+            expect(refreshToken).not.toBeNull();
+
+            expect(isJwt(accessToken)).toBeTruthy();
+            expect(isJwt(refreshToken)).toBeTruthy();
+        });
     });
+
     describe("Fields are missing", () => {
         it("should return 400 status code if email field is missing", async () => {
             // Arrange
@@ -263,6 +302,7 @@ describe("POST /auth/register", () => {
             const user = users[0];
             expect(user.email).toBe("rakesh@mern.space");
         });
+
         it("should trim the firstName field", async () => {
             // Arrange
             const userData = {
@@ -281,6 +321,7 @@ describe("POST /auth/register", () => {
             const user = users[0];
             expect(user.firstName).toBe("Rakesh");
         });
+
         it("should trim the lastName field", async () => {
             // Arrange
             const userData = {
@@ -299,6 +340,7 @@ describe("POST /auth/register", () => {
             const user = users[0];
             expect(user.lastName).toBe("K");
         });
+
         it("should Password minimum 6 characters", async () => {
             // Arrange
             const userData = {
