@@ -24,7 +24,7 @@ export class UserService {
             return await this.userRepository.save({
                 firstName,
                 lastName,
-                email: email.trim(),
+                email,
                 password: hashedPassword,
                 role: Roles.CUSTOMER,
             });
