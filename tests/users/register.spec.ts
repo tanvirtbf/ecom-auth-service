@@ -176,32 +176,30 @@ describe("POST /auth/register", () => {
                 .post("/auth/register")
                 .send(userData);
 
-            // Assert
-            let accessToken = null;
-            let refreshToken = null;
             interface Headers {
                 ["set-cookie"]: string[];
             }
-
+            // Assert
+            let accessToken = null;
+            let refreshToken = null;
             const cookies = (response.headers as Headers)["set-cookie"] || [];
-
+            // accessToken=eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwicm9sZSI6ImFkbWluIiwiaWF0IjoxNjkzOTA5Mjc2LCJleHAiOjE2OTM5MDkzMzYsImlzcyI6Im1lcm5zcGFjZSJ9.KetQMEzY36vxhO6WKwSR-P_feRU1yI-nJtp6RhCEZQTPlQlmVsNTP7mO-qfCdBr0gszxHi9Jd1mqf-hGhfiK8BRA_Zy2CH9xpPTBud_luqLMvfPiz3gYR24jPjDxfZJscdhE_AIL6Uv2fxCKvLba17X0WbefJSy4rtx3ZyLkbnnbelIqu5J5_7lz4aIkHjt-rb_sBaoQ0l8wE5KzyDNy7mGUf7cI_yR8D8VlO7x9llbhvCHF8ts6YSBRBt_e2Mjg5txtfBaDq5auCTXQ2lmnJtMb75t1nAFu8KwQPrDYmwtGZDkHUcpQhlP7R-y3H99YnrWpXbP8Zr_oO67hWnoCSw; Max-Age=43200; Domain=localhost; Path=/; Expires=Tue, 05 Sep 2023 22:21:16 GMT; HttpOnly; SameSite=Strict
             cookies.forEach((cookie) => {
                 if (cookie.startsWith("accessToken=")) {
                     accessToken = cookie.split(";")[0].split("=")[1];
                 }
+
                 if (cookie.startsWith("refreshToken=")) {
                     refreshToken = cookie.split(";")[0].split("=")[1];
                 }
             });
-
-            expect(accessToken).not.toBe(null);
-            expect(refreshToken).not.toBe(null);
+            expect(accessToken).not.toBeNull();
+            expect(refreshToken).not.toBeNull();
 
             expect(isJwt(accessToken)).toBeTruthy();
             expect(isJwt(refreshToken)).toBeTruthy();
         });
-
-        it("should store refresh token in the database", async () => {
+        it("should store the refresh token in the database", async () => {
             // Arrange
             const userData = {
                 firstName: "Rakesh",
@@ -209,25 +207,24 @@ describe("POST /auth/register", () => {
                 email: "rakesh@mern.space",
                 password: "password",
             };
+
             // Act
             const response = await request(app)
                 .post("/auth/register")
                 .send(userData);
 
             // Assert
-            const refreshTokenRepository =
-                connection.getRepository(RefreshToken);
-            // const refreshTokens = await refreshTokenRepository.find();
-            // expect(refreshTokens).toHaveLength(1);
+            const refreshTokenRepo = connection.getRepository(RefreshToken);
+            // const refreshTokens = await refreshTokenRepo.find();
 
-            const token = await refreshTokenRepository
+            const tokens = await refreshTokenRepo
                 .createQueryBuilder("refreshToken")
                 .where("refreshToken.userId = :userId", {
                     userId: (response.body as Record<string, string>).id,
                 })
                 .getMany();
 
-            expect(token).toHaveLength(1);
+            expect(tokens).toHaveLength(1);
         });
     });
     describe("Fields are missing", () => {
@@ -270,7 +267,6 @@ describe("POST /auth/register", () => {
             const users = await userRepository.find();
             expect(users).toHaveLength(0);
         });
-
         it("should return 400 status code if lastName is missing", async () => {
             // Arrange
             const userData = {
@@ -330,7 +326,6 @@ describe("POST /auth/register", () => {
             const user = users[0];
             expect(user.email).toBe("rakesh@mern.space");
         });
-
         it("should return 400 status code if email is not a valid email", async () => {
             // Arrange
             const userData = {
@@ -350,7 +345,6 @@ describe("POST /auth/register", () => {
             const users = await userRepository.find();
             expect(users).toHaveLength(0);
         });
-
         it("should return 400 status code if password length is less than 8 chars", async () => {
             // Arrange
             const userData = {
@@ -370,7 +364,6 @@ describe("POST /auth/register", () => {
             const users = await userRepository.find();
             expect(users).toHaveLength(0);
         });
-
         it("shoud return an array of error messages if email is missing", async () => {
             // Arrange
             const userData = {

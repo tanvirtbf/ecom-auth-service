@@ -22,7 +22,7 @@ export const isJwt = (token: string | null): boolean => {
             Buffer.from(part, "base64").toString("utf-8");
         });
         return true;
-    } catch (error) {
+    } catch (err) {
         return false;
     }
 };

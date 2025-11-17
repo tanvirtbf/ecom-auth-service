@@ -1,9 +1,9 @@
 import { NextFunction, Response } from "express";
-import { LoginUserRequest, RegisterUserRequest } from "../types";
+import { JwtPayload } from "jsonwebtoken";
+import { AuthRequest, RegisterUserRequest } from "../types";
 import { UserService } from "../services/UserService";
 import { Logger } from "winston";
 import { validationResult } from "express-validator";
-import { JwtPayload } from "jsonwebtoken";
 import { TokenService } from "../services/TokenService";
 import createHttpError from "http-errors";
 import { CredentialService } from "../services/CredentialService";
@@ -26,7 +26,6 @@ export class AuthController {
         if (!result.isEmpty()) {
             return res.status(400).json({ errors: result.array() });
         }
-
         const { firstName, lastName, email, password } = req.body;
 
         this.logger.debug("New request to register a user", {
@@ -49,29 +48,29 @@ export class AuthController {
                 role: user.role,
             };
 
+            const accessToken = this.tokenService.generateAccessToken(payload);
+
+            // Persist the refresh token
             const newRefreshToken =
                 await this.tokenService.persistRefreshToken(user);
 
-            const accessToken =
-                await this.tokenService.createAccessToken(payload);
-
-            const refreshToken = await this.tokenService.createRefreshToken({
+            const refreshToken = this.tokenService.generateRefreshToken({
                 ...payload,
-                id: newRefreshToken.id,
+                id: String(newRefreshToken.id),
             });
 
             res.cookie("accessToken", accessToken, {
-                httpOnly: true,
-                maxAge: 1000 * 60 * 60,
+                domain: "localhost",
                 sameSite: "strict",
-                secure: false,
+                maxAge: 1000 * 60 * 60, // 1h
+                httpOnly: true, // Very important
             });
 
             res.cookie("refreshToken", refreshToken, {
-                httpOnly: true,
-                maxAge: 1000 * 60 * 60 * 24,
+                domain: "localhost",
                 sameSite: "strict",
-                secure: false,
+                maxAge: 1000 * 60 * 60 * 24 * 365, // 1y
+                httpOnly: true, // Very important
             });
 
             res.status(201).json({ id: user.id });
@@ -81,84 +80,85 @@ export class AuthController {
         }
     }
 
-    async login(req: LoginUserRequest, res: Response, next: NextFunction) {
-        // validator
+    async login(req: RegisterUserRequest, res: Response, next: NextFunction) {
+        // Validation
         const result = validationResult(req);
         if (!result.isEmpty()) {
-            res.status(400).json({ errors: result.array() });
+            return res.status(400).json({ errors: result.array() });
         }
-
         const { email, password } = req.body;
 
-        this.logger.debug("New Request for login a user!", {
-            email: email,
-            password: "********",
+        this.logger.debug("New request to login a user", {
+            email,
+            password: "******",
         });
 
         try {
-            // check if username (email) is already exists
-            const user = await this.userService.checkUserEmailIsExist(email);
+            const user = await this.userService.findByEmail(email);
             if (!user) {
-                const err = createHttpError(
+                const error = createHttpError(
                     400,
-                    "Email or Password does not match!",
+                    "Email or password does not match.",
                 );
-                throw err;
+                next(error);
+                return;
             }
 
-            // compare password
-            const isMatch = await this.credentialService.comparePassword(
+            const passwordMatch = await this.credentialService.comparePassword(
                 password,
                 user.password,
             );
-            if (!isMatch) {
-                const err = createHttpError(
-                    500,
-                    "Email or password does not match!",
+
+            if (!passwordMatch) {
+                const error = createHttpError(
+                    400,
+                    "Email or password does not match.",
                 );
-                throw err;
+                next(error);
+                return;
             }
 
-            // generate token
             const payload: JwtPayload = {
                 sub: String(user.id),
                 role: user.role,
             };
 
-            const accessToken =
-                await this.tokenService.createAccessToken(payload);
+            const accessToken = this.tokenService.generateAccessToken(payload);
 
-            // Persist Refresh token in the database
+            // Persist the refresh token
             const newRefreshToken =
                 await this.tokenService.persistRefreshToken(user);
 
-            const refreshToken = await this.tokenService.createRefreshToken({
+            const refreshToken = this.tokenService.generateRefreshToken({
                 ...payload,
-                id: newRefreshToken.id,
+                id: String(newRefreshToken.id),
             });
 
-            // add tokens to cookies
             res.cookie("accessToken", accessToken, {
-                httpOnly: true,
-                maxAge: 1000 * 60 * 60,
+                domain: "localhost",
                 sameSite: "strict",
-                secure: false,
+                maxAge: 1000 * 60 * 60, // 1h
+                httpOnly: true, // Very important
             });
 
             res.cookie("refreshToken", refreshToken, {
-                httpOnly: true,
-                maxAge: 1000 * 60 * 60 * 24 * 365,
+                domain: "localhost",
                 sameSite: "strict",
-                secure: false,
+                maxAge: 1000 * 60 * 60 * 24 * 365, // 1y
+                httpOnly: true, // Very important
             });
 
-            // return the response (id)
-            res.status(200).json({
-                message: "user login successfully!",
-                id: user.id,
-            });
-        } catch (error) {
-            next(error);
+            this.logger.info("User has been logged in", { id: user.id });
+            res.json({ id: user.id });
+        } catch (err) {
+            next(err);
+            return;
         }
+    }
+
+    async self(req: AuthRequest, res: Response) {
+        // token req.auth.id
+        const user = await this.userService.findById(Number(req.auth.sub));
+        res.json(user);
     }
 }

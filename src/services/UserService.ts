@@ -37,10 +37,19 @@ export class UserService {
         }
     }
 
-    async checkUserEmailIsExist(email: string) {
-        const user = await this.userRepository.findOne({
-            where: { email: email },
+    async findByEmail(email: string) {
+        return await this.userRepository.findOne({
+            where: {
+                email,
+            },
         });
-        return user;
+    }
+
+    async findById(id: number) {
+        return await this.userRepository.findOne({
+            where: {
+                id,
+            },
+        });
     }
 }

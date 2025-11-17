@@ -10,11 +10,9 @@ export interface RegisterUserRequest extends Request {
     body: UserData;
 }
 
-export interface LoginUserData {
-    email: string;
-    password: string;
-}
-
-export interface LoginUserRequest extends Request {
-    body: LoginUserData;
+export interface AuthRequest extends Request {
+    auth: {
+        sub: string;
+        role: number;
+    };
 }
