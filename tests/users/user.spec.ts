@@ -71,5 +71,49 @@ describe("GET /auth/self", () => {
             // Check if user id matches with registered user
             expect((response.body as Record<string, string>).id).toBe(data.id);
         });
+
+        it("should not return the password field", async () => {
+            const userData = {
+                firstName: "tanvir",
+                lastName: "ahmed",
+                email: "tanvir@gmail.com",
+                password: "secret",
+            };
+            const userRepo = connection.getRepository(User);
+            await userRepo.save({
+                ...userData,
+                role: Roles.CUSTOMER,
+            });
+            // Generate token
+            const accessToken = jwks.token({
+                sub: String(1),
+                role: Roles.CUSTOMER,
+            });
+            const response = await request(app)
+                .get("/auth/self")
+                .set("Cookie", [`accessToken=${accessToken};`]);
+
+            // Assert
+            expect(response.body as Record<string, string>).not.toHaveProperty(
+                "password",
+            );
+        });
+
+        it("should return 401 status code if token does not exists", async () => {
+            const userData = {
+                firstName: "tanvir",
+                lastName: "ahmed",
+                email: "tanvir@gmail.com",
+                password: "secret",
+            };
+            const userRepo = connection.getRepository(User);
+            await userRepo.save({
+                ...userData,
+                role: Roles.CUSTOMER,
+            });
+
+            const response = await request(app).get("/auth/self").send();
+            expect(response.statusCode).toBe(401);
+        });
     });
 });
