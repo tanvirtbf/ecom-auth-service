@@ -199,7 +199,6 @@ describe("POST /auth/register", () => {
             expect(isJwt(accessToken)).toBeTruthy();
             expect(isJwt(refreshToken)).toBeTruthy();
         });
-
         it("should store the refresh token in the database", async () => {
             // Arrange
             const userData = {
@@ -268,7 +267,6 @@ describe("POST /auth/register", () => {
             const users = await userRepository.find();
             expect(users).toHaveLength(0);
         });
-
         it("should return 400 status code if lastName is missing", async () => {
             // Arrange
             const userData = {
@@ -328,7 +326,6 @@ describe("POST /auth/register", () => {
             const user = users[0];
             expect(user.email).toBe("rakesh@mern.space");
         });
-
         it("should return 400 status code if email is not a valid email", async () => {
             // Arrange
             const userData = {
@@ -348,7 +345,6 @@ describe("POST /auth/register", () => {
             const users = await userRepository.find();
             expect(users).toHaveLength(0);
         });
-
         it("should return 400 status code if password length is less than 8 chars", async () => {
             // Arrange
             const userData = {
@@ -368,7 +364,6 @@ describe("POST /auth/register", () => {
             const users = await userRepository.find();
             expect(users).toHaveLength(0);
         });
-
         it("shoud return an array of error messages if email is missing", async () => {
             // Arrange
             const userData = {
