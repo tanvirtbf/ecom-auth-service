@@ -171,7 +171,6 @@ export class AuthController {
 
             const accessToken = this.tokenService.generateAccessToken(payload);
 
-            // check kora hocche authenticate middleware token validate korar por req.auth.sub er vitor user er jei id set korse ai id wala user asholeii exist kore kina
             const user = await this.userService.findById(Number(req.auth.sub));
             if (!user) {
                 const error = createHttpError(
@@ -210,6 +209,23 @@ export class AuthController {
 
             this.logger.info("User has been logged in", { id: user.id });
             res.json({ id: user.id });
+        } catch (err) {
+            next(err);
+            return;
+        }
+    }
+
+    async logout(req: AuthRequest, res: Response, next: NextFunction) {
+        try {
+            await this.tokenService.deleteRefreshToken(Number(req.auth.id));
+            this.logger.info("Refresh token has been deleted", {
+                id: req.auth.id,
+            });
+            this.logger.info("User has been logged out", { id: req.auth.sub });
+
+            res.clearCookie("accessToken");
+            res.clearCookie("refreshToken");
+            res.json({});
         } catch (err) {
             next(err);
             return;
