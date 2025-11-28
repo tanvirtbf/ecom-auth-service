@@ -171,6 +171,7 @@ export class AuthController {
 
             const accessToken = this.tokenService.generateAccessToken(payload);
 
+            // check kora hocche authenticate middleware token validate korar por req.auth.sub er vitor user er jei id set korse ai id wala user asholeii exist kore kina
             const user = await this.userService.findById(Number(req.auth.sub));
             if (!user) {
                 const error = createHttpError(

@@ -29,5 +29,5 @@ export default expressjwt({
             });
         }
         return true;
-    },
+    }, // ekhane isRevoked aijonno use kora hoiche jate bujhi je jei refreshToken ami browser er cookie theke peye user ke validate korchi seta refreshToken database e ache kina . karon dhoren user first time login korlo . Token A create . jodi database theke kono vabe token A er against e data delete hoye jay but browser e to expires time porjonto thakbe . but sei token to deleted . and browser e thaka token valid . tai easily je keu seta diye system e access korte parbe . tai ekhane check kora hocche je jei token pauya gese seta ki database e ache ki nai . eta security isshue
 });
