@@ -1,0 +1,113 @@
+# ========================================
+# QUICK REFERENCE
+# ========================================
+
+# Generate: npx typeorm-ts-node-commonjs migration:generate src/migration/Name -d src/config/data-source.ts
+# Run:      npm run migration:run
+# Revert:   npm run migration:revert
+# Show:     npm run migration:show
+# Create:   npm run migration:create src/migration/Name
+
+
+
+
+
+
+# ========================================
+# TypeORM Migration Commands
+# ========================================
+
+# 1. GENERATE MIGRATION (Entity change korar por)
+# -------------------------------------------------
+# Syntax: npx typeorm-ts-node-commonjs migration:generate src/migration/MigrationName -d src/config/data-source.ts
+
+# Example - Initial migration generate
+npx typeorm-ts-node-commonjs migration:generate src/migration/InitialMigration -d src/config/data-source.ts
+
+# Example - User entity te phone field add korar por
+npx typeorm-ts-node-commonjs migration:generate src/migration/AddPhoneToUser -d src/config/data-source.ts
+
+# Example - New Product entity create korar por
+npx typeorm-ts-node-commonjs migration:generate src/migration/CreateProductTable -d src/config/data-source.ts
+
+
+# 2. RUN MIGRATION (Database e apply korar jonno)
+# -------------------------------------------------
+npm run migration:run
+
+# OR directly:
+npx typeorm-ts-node-commonjs migration:run -d src/config/data-source.ts
+
+
+# 3. REVERT MIGRATION (Last migration undo korar jonno)
+# -------------------------------------------------
+npm run migration:revert
+
+# OR directly:
+npx typeorm-ts-node-commonjs migration:revert -d src/config/data-source.ts
+
+
+# 4. SHOW MIGRATION STATUS (Kon migration run hoyeche dekhar jonno)
+# -------------------------------------------------
+npm run migration:show
+
+# OR directly:
+npx typeorm-ts-node-commonjs migration:show -d src/config/data-source.ts
+
+
+# 5. CREATE EMPTY MIGRATION (Manual SQL er jonno)
+# -------------------------------------------------
+npm run migration:create src/migration/CustomMigration
+
+# OR directly:
+npx typeorm-ts-node-commonjs migration:create src/migration/CustomMigration
+
+
+# ========================================
+# WORKFLOW EXAMPLE
+# ========================================
+
+# Step 1: Entity change korun (e.g., User.ts e phone field add)
+# Step 2: Migration generate korun
+npx typeorm-ts-node-commonjs migration:generate src/migration/AddPhoneToUser -d src/config/data-source.ts
+
+# Step 3: Generated migration file review korun (src/migration folder e)
+# Step 4: Migration run korun
+npm run migration:run
+
+# Step 5: Application run korun
+npm run dev
+
+
+# ========================================
+# IMPORTANT NOTES
+# ========================================
+
+# ✅ Migration generate korar age entity change korte hobe
+# ✅ Migration run korar age review korte hobe
+# ✅ Production e synchronize: false rakhte hobe (already done)
+# ✅ Migration files git e commit korte hobe
+# ❌ Already run kora migration edit kora jabe na
+# ❌ Migration file delete kora jabe na
+
+
+# ========================================
+# DATABASE COMMANDS
+# ========================================
+
+# Database e connect
+psql -U root -d mernstack_auth_service
+
+# Tables dekhar jonno
+\dt
+
+# Users dekhar jonno
+SELECT * FROM "user";
+
+# Migrations dekhar jonno
+SELECT * FROM migrations;
+
+# Exit
+\q
+
+
