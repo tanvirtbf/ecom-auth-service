@@ -4,21 +4,36 @@ import request from "supertest";
 import { AppDataSource } from "../../src/config/data-source";
 import app from "../../src/app";
 import { Tenant } from "../../src/entity/Tenant";
+import createJWKSMock from "mock-jwks";
+import { Roles } from "../../src/constants";
 
 describe("GET /auth/self", () => {
     let connection: DataSource;
+    let jwks: ReturnType<typeof createJWKSMock>;
+    let accessToken: string;
 
     beforeAll(async () => {
+        jwks = createJWKSMock("http://localhost:5501");
         connection = await AppDataSource.initialize();
     });
 
     beforeEach(async () => {
+        jwks.start();
         await connection.dropDatabase();
         await connection.synchronize();
+
+        accessToken = jwks.token({
+            sub: "1",
+            role: Roles.ADMIN,
+        });
     });
 
     afterAll(async () => {
         await connection.destroy();
+    });
+
+    afterEach(() => {
+        jwks.stop();
     });
 
     describe("Given all fields", () => {
@@ -32,6 +47,7 @@ describe("GET /auth/self", () => {
             // Act
             const response = await request(app)
                 .post("/tenants")
+                .set("Cookie", [`accessToken=${accessToken};`])
                 .send(tenantData);
 
             // Assert
@@ -46,7 +62,10 @@ describe("GET /auth/self", () => {
             };
 
             // Act
-            await request(app).post("/tenants").send(tenantData);
+            await request(app)
+                .post("/tenants")
+                .set("Cookie", [`accessToken=${accessToken};`])
+                .send(tenantData);
 
             const tenantRepository = connection.getRepository(Tenant);
             const tenants = await tenantRepository.find();
@@ -71,6 +90,31 @@ describe("GET /auth/self", () => {
 
             // Assert
             expect(response.statusCode).toBe(401);
+        });
+
+        it("should return 403 status code if user is not Admin", async () => {
+            // Arrange
+            const tenantData = {
+                name: "Tenant Name",
+                address: "Tenant Address",
+            };
+
+            const managerToken = jwks.token({
+                sub: "1",
+                role: Roles.MANAGER,
+            });
+
+            // Act
+            const response = await request(app)
+                .post("/tenants")
+                .set("Cookie", [`accessToken=${managerToken};`])
+                .send(tenantData);
+
+            // Assert
+            const tenantRepository = connection.getRepository(Tenant);
+            const tenants = await tenantRepository.find();
+            expect(response.statusCode).toBe(403);
+            expect(tenants).toHaveLength(0);
         });
     });
 });
