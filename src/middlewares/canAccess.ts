@@ -5,14 +5,16 @@ import createHttpError from "http-errors";
 export const canAccess = (roles: string[]) => {
     return (req: Request, res: Response, next: NextFunction) => {
         const _req = req as AuthRequest;
-        const authRole = _req.auth.role;
+        const roleFromToken = _req.auth.role;
 
-        if (!roles.includes(authRole)) {
+        if (!roles.includes(roleFromToken)) {
             const error = createHttpError(
                 403,
-                "Error while canAccess middleware are running",
+                "You don't have enough permissions",
             );
-            return next(error);
+
+            next(error);
+            return;
         }
         next();
     };

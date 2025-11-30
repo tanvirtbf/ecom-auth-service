@@ -1,24 +1,27 @@
 import { Repository } from "typeorm";
 import { ITenant } from "../types";
 import { Tenant } from "../entity/Tenant";
-import createHttpError from "http-errors";
 
 export class TenantService {
-    private tenantRepository: Repository<Tenant>;
-    constructor(tenantRepository: Repository<Tenant>) {
-        this.tenantRepository = tenantRepository;
-    }
+    constructor(private tenantRepository: Repository<Tenant>) {}
 
     async create(tenantData: ITenant) {
-        try {
-            const tenant = await this.tenantRepository.save(tenantData);
-            return tenant;
-        } catch (error) {
-            const err = createHttpError(
-                500,
-                "Error while persist Tenant data in the Database",
-            );
-            throw err;
-        }
+        return await this.tenantRepository.save(tenantData);
+    }
+
+    async update(id: number, tenantData: ITenant) {
+        return await this.tenantRepository.update(id, tenantData);
+    }
+
+    async getAll() {
+        return await this.tenantRepository.find();
+    }
+
+    async getById(tenantId: number) {
+        return await this.tenantRepository.findOne({ where: { id: tenantId } });
+    }
+
+    async deleteById(tenantId: number) {
+        return await this.tenantRepository.delete(tenantId);
     }
 }

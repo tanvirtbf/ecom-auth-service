@@ -11,7 +11,7 @@ export class Tenant {
     @PrimaryGeneratedColumn()
     id: number;
 
-    @Column("varchar", { length: 1000 })
+    @Column("varchar", { length: 100 })
     name: string;
 
     @Column("varchar", { length: 255 })
